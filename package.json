@@ -1,6 +1,6 @@
 {
   "name": "recourier",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Request lifecycle property sealing for hapi",
   "main": "lib/index.js",
   "scripts": {
