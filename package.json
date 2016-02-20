@@ -1,0 +1,42 @@
+{
+  "name": "recourier",
+  "version": "0.0.1",
+  "description": "Request lifecycle property sealing for hapi",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "lab -a code -t 100 -L",
+    "test-tap": "lab -a code -r tap -o tests.tap",
+    "test-cov-html": "lab -a code -r html -o coverage.html"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ruiquelhas/recourier.git"
+  },
+  "keywords": [
+    "hapi",
+    "integrity",
+    "lifecycle",
+    "plugin",
+    "request"
+  ],
+  "author": "Rui Quelhas <rfpquelhas@gmail.com>",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/ruiquelhas/recourier/issues"
+  },
+  "homepage": "https://github.com/ruiquelhas/recourier#readme",
+  "devDependencies": {
+    "code": "2.x.x",
+    "hapi": "13.x.x",
+    "lab": "9.x.x"
+  },
+  "dependencies": {
+    "lodash.get": "4.x.x",
+    "lodash.keys": "4.x.x",
+    "lodash.omit": "4.x.x",
+    "lodash.set": "4.x.x"
+  },
+  "engine": {
+    "node": ">=4.0.0"
+  }
+}
