@@ -81,7 +81,7 @@ lab.experiment('recourier', () => {
             server.inject('/bar', (response) => {
 
                 Code.expect(response.statusCode).to.equal(200);
-                Code.expect(response.result.params).to.deep.equal({ foo: 'bar' });
+                Code.expect(response.result.params).to.equal({ foo: 'bar' });
                 Code.expect(response.result.error).to.not.exist();
                 done();
             });
@@ -92,7 +92,7 @@ lab.experiment('recourier', () => {
             server.inject('/foobar?foo=bar', (response) => {
 
                 Code.expect(response.statusCode).to.equal(200);
-                Code.expect(response.result.query).to.deep.equal({ foo: 'bar' });
+                Code.expect(response.result.query).to.equal({ foo: 'bar' });
                 Code.expect(response.result.error).to.not.exist();
                 done();
             });
@@ -103,7 +103,7 @@ lab.experiment('recourier', () => {
             server.inject({ url: '/foobar', method: 'POST', payload: { foo: 'bar' } }, (response) => {
 
                 Code.expect(response.statusCode).to.equal(200);
-                Code.expect(response.result.payload).to.deep.equal({ foo: 'bar' });
+                Code.expect(response.result.payload).to.equal({ foo: 'bar' });
                 Code.expect(response.result.error).to.not.exist();
                 done();
             });
