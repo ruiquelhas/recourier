@@ -31,10 +31,10 @@
   },
   "homepage": "https://github.com/ruiquelhas/recourier#readme",
   "devDependencies": {
-    "code": "3.x.x",
+    "code": "4.x.x",
     "coveralls": "2.x.x",
-    "hapi": "13.x.x",
-    "lab": "10.x.x"
+    "hapi": "16.x.x",
+    "lab": "12.x.x"
   },
   "dependencies": {
     "hoek": "4.x.x"
