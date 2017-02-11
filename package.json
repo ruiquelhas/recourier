@@ -34,10 +34,7 @@
     "lab": "10.x.x"
   },
   "dependencies": {
-    "lodash.get": "4.x.x",
-    "lodash.keys": "4.x.x",
-    "lodash.omit": "4.x.x",
-    "lodash.set": "4.x.x"
+    "hoek": "4.x.x"
   },
   "engine": {
     "node": ">=4.0.0"
