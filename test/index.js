@@ -59,7 +59,7 @@ lab.experiment('recourier', () => {
             }, {
                 register: Recourier,
                 options: {
-                    namespace: namespace,
+                    namespace,
                     properties: ['params', 'payload', 'query']
                 }
             }];
@@ -144,7 +144,7 @@ lab.experiment('recourier', () => {
             }, {
                 register: Recourier,
                 options: {
-                    namespace: namespace,
+                    namespace,
                     properties: ['params', 'payload', 'query']
                 }
             }];
