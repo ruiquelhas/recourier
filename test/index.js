@@ -11,165 +11,180 @@ const lab = exports.lab = Lab.script();
 lab.experiment('recourier', () => {
 
     let server;
+    let modifier;
 
     const namespace = 'foo';
     const route = {
         path: '/{foo}',
         method: '*',
-        handler: (request, reply) => {
-
-            reply({
-                params: request.params,
-                payload: request.payload,
-                query: request.query
-            });
-        }
+        handler: (request) => ({
+            params: request.params,
+            payload: request.payload,
+            query: request.query
+        })
     };
 
-    lab.experiment('when the original request is modified in its lifecycle', () => {
+    lab.experiment('when the original request is modified during the lifecycle', () => {
 
-        lab.beforeEach((done) => {
+        lab.beforeEach(async () => {
 
-            server = new Hapi.Server();
-            server.connection();
+            modifier = (app, options) => {
+
+                app.dependency('recourier', (instance) => {
+
+                    instance.ext('onPreHandler', (request, h) => {
+
+                        request.params = { baz: 'qux' };
+                        request.payload = { baz: 'qux' };
+                        request.query = { baz: 'qux' };
+
+                        request.app.bar = {};
+
+                        return h.continue;
+                    });
+                });
+            };
 
             const plugins = [{
-                register: (function () {
-
-                    const plugin = (app, options, next) => {
-
-                        app.ext('onPostAuth', (request, reply) => {
-
-                            request.params = { baz: 'qux' };
-                            request.payload = { baz: 'qux' };
-                            request.query = { baz: 'qux' };
-
-                            request.app.bar = {};
-
-                            reply.continue();
-                        });
-
-                        next();
-                    };
-
-                    plugin.attributes = { name: 'baz-qux' };
-
-                    return plugin;
-                }())
-            }, {
-                register: Recourier,
+                plugin: Recourier,
                 options: {
                     namespace,
                     properties: ['params', 'payload', 'query']
                 }
+            }, {
+                plugin: {
+                    name: 'baz-qux',
+                    register: modifier
+                }
             }];
 
-            server.register(plugins, (err) => {
+            server = new Hapi.Server();
+            await server.register(plugins);
 
-                if (err) {
-                    return done(err);
+            server.route(route);
+        });
+
+        lab.test('should keep integrity of the request parameters', async () => {
+
+            const { result, statusCode } = await server.inject('/bar');
+
+            Code.expect(statusCode).to.equal(200);
+            Code.expect(result.params).to.equal({ foo: 'bar' });
+            Code.expect(result.error).to.not.exist();
+        });
+
+        lab.test('should keep integrity of the request query', async () => {
+
+            const { result, statusCode } = await server.inject('/foobar?foo=bar');
+
+            Code.expect(statusCode).to.equal(200);
+            Code.expect(result.query).to.equal({ foo: 'bar' });
+            Code.expect(result.error).to.not.exist();
+        });
+
+        lab.test('should keep integrity of the request payload', async () => {
+
+            const { result, statusCode } = await server.inject({
+                url: '/foobar',
+                method: 'POST',
+                payload: {
+                    foo: 'bar'
                 }
-
-                server.route(route);
-
-                done();
             });
-        });
 
-        lab.test('should keep integrity of the request parameters', (done) => {
-
-            server.inject('/bar', (response) => {
-
-                Code.expect(response.statusCode).to.equal(200);
-                Code.expect(response.result.params).to.equal({ foo: 'bar' });
-                Code.expect(response.result.error).to.not.exist();
-                done();
-            });
-        });
-
-        lab.test('should keep integrity of the request query', (done) => {
-
-            server.inject('/foobar?foo=bar', (response) => {
-
-                Code.expect(response.statusCode).to.equal(200);
-                Code.expect(response.result.query).to.equal({ foo: 'bar' });
-                Code.expect(response.result.error).to.not.exist();
-                done();
-            });
-        });
-
-        lab.test('should keep integrity of the request payload', (done) => {
-
-            server.inject({ url: '/foobar', method: 'POST', payload: { foo: 'bar' } }, (response) => {
-
-                Code.expect(response.statusCode).to.equal(200);
-                Code.expect(response.result.payload).to.equal({ foo: 'bar' });
-                Code.expect(response.result.error).to.not.exist();
-                done();
-            });
+            Code.expect(statusCode).to.equal(200);
+            Code.expect(result.payload).to.equal({ foo: 'bar' });
+            Code.expect(result.error).to.not.exist();
         });
     });
 
-    lab.experiment('when something tries to change the sealed request copy in its lifecycle', () => {
+    lab.experiment('when a plugin tries to change the immutable request namespace during the lifecycle', () => {
 
-        lab.beforeEach((done) => {
+        lab.beforeEach(async () => {
 
-            server = new Hapi.Server();
-            server.connection();
+            modifier = (app, options) => {
+
+                app.ext('onPostAuth', (request, h) => {
+
+                    try {
+                        request.app[namespace] = {};
+                    }
+                    catch (error) {
+                        return h.response({ error }).takeover();
+                    }
+
+                    return h.continue;
+                });
+            };
 
             const plugins = [{
-                register: (function () {
-
-                    const plugin = (app, options, next) => {
-
-                        app.ext('onPostAuth', (request, reply) => {
-
-                            try {
-                                request.app[namespace] = {};
-                            }
-                            catch (err) {
-                                return reply({ error: err });
-                            }
-
-                            reply.continue();
-                        });
-
-                        next();
-                    };
-
-                    plugin.attributes = { name: 'err' };
-
-                    return plugin;
-                }())
-            }, {
-                register: Recourier,
-                options: {
-                    namespace,
-                    properties: ['params', 'payload', 'query']
+                plugin: {
+                    name: 'err',
+                    register: modifier
                 }
+            }, {
+                plugin: Recourier,
+                options: { namespace }
             }];
 
-            server.register(plugins, (err) => {
+            server = new Hapi.Server();
+            await server.register(plugins);
 
-                if (err) {
-                    return done(err);
-                }
-
-                server.route(route);
-
-                done();
-            });
+            server.route(route);
         });
 
-        lab.test('should throw an error about the occurence', (done) => {
+        lab.test('should throw an error about the occurence', async () => {
 
-            server.inject('/foobar', (response) => {
+            const { result, statusCode } = await server.inject('/foobar');
 
-                Code.expect(response.statusCode).to.equal(200);
-                Code.expect(response.result.error).to.be.an.instanceof(TypeError);
-                Code.expect(response.result.error.message).to.startWith('Cannot assign to read only property');
-                done();
-            });
+            Code.expect(statusCode).to.equal(200);
+            Code.expect(result.error).to.be.an.instanceof(TypeError);
+            Code.expect(result.error.message).to.startWith('Cannot assign to read only property');
+        });
+    });
+
+    lab.experiment('when a plugin tries to extend the imutable request namespace during the lifecycle', () => {
+
+        lab.beforeEach(async () => {
+
+            modifier = (app, options) => {
+
+                app.ext('onPostAuth', (request, h) => {
+
+                    try {
+                        request.app[namespace].foo = 'bar';
+                    }
+                    catch (error) {
+                        return h.response({ error }).takeover();
+                    }
+
+                    return h.continue;
+                });
+            };
+
+            const plugins = [{
+                plugin: {
+                    name: 'err',
+                    register: modifier
+                }
+            }, {
+                plugin: Recourier,
+                options: { namespace }
+            }];
+
+            server = new Hapi.Server();
+            await server.register(plugins);
+
+            server.route(route);
+        });
+
+        lab.test('should throw an error about the occurence', async () => {
+
+            const { result, statusCode } = await server.inject('/foobar');
+
+            Code.expect(statusCode).to.equal(200);
+            Code.expect(result.error).to.be.an.instanceof(TypeError);
+            Code.expect(result.error.message).to.endWith('object is not extensible');
         });
     });
 });
