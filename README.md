@@ -7,7 +7,8 @@ Request lifecycle property sealing for [hapi](https://github.com/hapijs/hapi).
 
 - [Installation](#installation)
 - [Usage](#usage)
-  - [Example](#example)
+  - [Example 1](#example1)
+  - [Example 2](#example2)
 
 ## Installation
 Install via [NPM](https://www.npmjs.org).
@@ -22,35 +23,77 @@ Register the package as a server plugin, provide an optional namespace where the
 
 You can still mess around with those original request properties, but be aware that what you ultimately get in a handler is exactly what was available and parsed in the `onPostAuth` extension point.
 
-### Example
+### Example 1
+
+Avoid plugin registration ordering issues by registering `Recourier` in the last place.
+
+```js
+const Hapi = require('hapi');
+const Recourier = require('recourier');
+const MyPlugin = require('my-plugin');
+
+const plugins = [{
+    plugin: MyPlugin
+}, {
+    // any additional plugins
+}, {
+    plugin: Recourier,
+    options: {
+        namespace: 'foo', // defaults to 'recourier'
+        properties: ['payload'] // immutable request properties
+    }
+}];
+
+try {
+    const server = new Hapi.Server();
+
+    await server.register(plugins);
+    await server.start();
+}
+catch (err) {
+    throw err;
+}
+```
+
+### Example 2
+
+Avoid plugin registration ordering issues by using `server.dependency()`.
 
 ```js
 const Hapi = require('hapi');
 const Recourier = require('recourier');
 
-const server = new Hapi.Server();
-server.connection({
-    // go nuts
-});
+const MyPlugin = {
+    name: 'my-plugin',
+    register: (server, options) => {
+
+        server.dependency(Recourier.pkg.name, (app) => {
+            // go nuts
+        });
+    }
+};
 
 const plugins = [{
-    // go nuts
-}, {
-    // Make sure `Recourier` is the last plugin you register to avoid ordering
-    // issues when different custom plugins work in the same extension point.
-    register: Recourier,
+    plugin: Recourier,
     options: {
         namespace: 'foo', // defaults to 'recourier'
-        properties: ['payload'] // request properties to seal
+        properties: ['payload'] // immutable request properties
     }
+}, {
+    plugin: MyPlugin
+}, {
+    // any additional plugins
 }];
 
-server.register(plugins, (err) => {
+try {
+    const server = new Hapi.Server();
 
-    server.start(() => {
-        // go nuts
-    });
-});
+    await server.register(plugins);
+    await server.start();
+}
+catch (err) {
+    throw err;
+}
 ```
 
 [coveralls-img]: https://coveralls.io/repos/ruiquelhas/recourier/badge.svg
