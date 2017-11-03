@@ -1,5 +1,5 @@
 # recourier
-Request lifecycle property sealing for [hapi](https://github.com/hapijs/hapi).
+Immutable request properties for [hapi](https://github.com/hapijs/hapi).
 
 [![NPM Version][fury-img]][fury-url] [![Build Status][travis-img]][travis-url] [![Coverage Status][coveralls-img]][coveralls-url] [![Dependencies][david-img]][david-url]
 
@@ -18,10 +18,9 @@ $ npm install recourier
 ```
 
 ## Usage
+Register the package as a server plugin, providing an optional namespace where the properties will be available during the request lifecycle (in case you want to access them during that period) and the list of the `hapi` request properties you effectively want to make immutable.
 
-Register the package as a server plugin, provide an optional namespace where the sealed properties will be available during the request lifecycle (in case you want to access them during that period) and the list of the `hapi` request properties you effectively want to seal.
-
-You can still mess around with those original request properties, but be aware that what you ultimately get in a handler is exactly what was available and parsed in the `onPostAuth` extension point.
+The initial values of those properties (i.e. when they are parsed by the `onPostAuth` extension point) will be saved in that immutable application namespace, which will then be again available in the request handler itself.
 
 ### Example 1
 
