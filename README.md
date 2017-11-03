@@ -1,7 +1,7 @@
 # recourier
 Immutable request properties for [hapi](https://github.com/hapijs/hapi).
 
-[![NPM Version][fury-img]][fury-url] [![Build Status][travis-img]][travis-url] [![Coverage Status][coveralls-img]][coveralls-url] [![Dependencies][david-img]][david-url]
+[![NPM Version][version-img]][version-url] [![Build Status][travis-img]][travis-url] [![Coverage Status][coveralls-img]][coveralls-url] [![Dependencies][david-img]][david-url] [![Dev Dependencies][david-dev-img]][david-dev-url]
 
 ## Table of Contents
 
@@ -95,11 +95,13 @@ catch (err) {
 }
 ```
 
-[coveralls-img]: https://coveralls.io/repos/ruiquelhas/recourier/badge.svg
+[coveralls-img]: https://img.shields.io/coveralls/ruiquelhas/recourier.svg?style=flat-square
 [coveralls-url]: https://coveralls.io/github/ruiquelhas/recourier
-[david-img]: https://david-dm.org/ruiquelhas/recourier.svg
+[david-img]: https://img.shields.io/david/ruiquelhas/recourier.svg?style=flat-square
 [david-url]: https://david-dm.org/ruiquelhas/recourier
-[fury-img]: https://badge.fury.io/js/recourier.svg
-[fury-url]: https://badge.fury.io/js/recourier
-[travis-img]: https://travis-ci.org/ruiquelhas/recourier.svg
+[david-dev-img]: https://img.shields.io/david/dev/ruiquelhas/recourier.svg?style=flat-square
+[david-dev-url]: https://david-dm.org/ruiquelhas/recourier?type=dev
+[version-img]: https://img.shields.io/npm/v/recourier.svg?style=flat-square
+[version-url]: https://www.npmjs.com/package/recourier
+[travis-img]: https://img.shields.io/travis/ruiquelhas/recourier.svg?style=flat-square
 [travis-url]: https://travis-ci.org/ruiquelhas/recourier
