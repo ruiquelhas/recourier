@@ -1,13 +1,14 @@
 # recourier
-Request lifecycle property sealing for [hapi](https://github.com/hapijs/hapi).
+Immutable request properties for [hapi](https://github.com/hapijs/hapi).
 
-[![NPM Version][fury-img]][fury-url] [![Build Status][travis-img]][travis-url] [![Coverage Status][coveralls-img]][coveralls-url] [![Dependencies][david-img]][david-url]
+[![NPM Version][version-img]][version-url] [![Build Status][travis-img]][travis-url] [![Coverage Status][coveralls-img]][coveralls-url] [![Dependencies][david-img]][david-url] [![Dev Dependencies][david-dev-img]][david-dev-url]
 
 ## Table of Contents
 
 - [Installation](#installation)
 - [Usage](#usage)
-  - [Example](#example)
+  - [Example 1](#example1)
+  - [Example 2](#example2)
 
 ## Installation
 Install via [NPM](https://www.npmjs.org).
@@ -17,47 +18,90 @@ $ npm install recourier
 ```
 
 ## Usage
+Register the package as a server plugin, providing an optional namespace where the properties will be available during the request lifecycle (in case you want to access them during that period) and the list of the `hapi` request properties you effectively want to make immutable.
 
-Register the package as a server plugin, provide an optional namespace where the sealed properties will be available during the request lifecycle (in case you want to access them during that period) and the list of the `hapi` request properties you effectively want to seal.
+The initial values of those properties (i.e. when they are parsed by the `onPostAuth` extension point) will be saved in that immutable application namespace, which will then be again available in the request handler itself.
 
-You can still mess around with those original request properties, but be aware that what you ultimately get in a handler is exactly what was available and parsed in the `onPostAuth` extension point.
+### Example 1
 
-### Example
+Avoid plugin registration ordering issues by registering `Recourier` in the last place.
+
+```js
+const Hapi = require('hapi');
+const Recourier = require('recourier');
+const MyPlugin = require('my-plugin');
+
+const plugins = [{
+    plugin: MyPlugin
+}, {
+    // any additional plugins
+}, {
+    plugin: Recourier,
+    options: {
+        namespace: 'foo', // defaults to 'recourier'
+        properties: ['payload'] // immutable request properties
+    }
+}];
+
+try {
+    const server = new Hapi.Server();
+
+    await server.register(plugins);
+    await server.start();
+}
+catch (err) {
+    throw err;
+}
+```
+
+### Example 2
+
+Avoid plugin registration ordering issues by using `server.dependency()`.
 
 ```js
 const Hapi = require('hapi');
 const Recourier = require('recourier');
 
-const server = new Hapi.Server();
-server.connection({
-    // go nuts
-});
+const MyPlugin = {
+    name: 'my-plugin',
+    register: (server, options) => {
+
+        server.dependency(Recourier.pkg.name, (app) => {
+            // go nuts
+        });
+    }
+};
 
 const plugins = [{
-    // go nuts
-}, {
-    // Make sure `Recourier` is the last plugin you register to avoid ordering
-    // issues when different custom plugins work in the same extension point.
-    register: Recourier,
+    plugin: Recourier,
     options: {
         namespace: 'foo', // defaults to 'recourier'
-        properties: ['payload'] // request properties to seal
+        properties: ['payload'] // immutable request properties
     }
+}, {
+    plugin: MyPlugin
+}, {
+    // any additional plugins
 }];
 
-server.register(plugins, (err) => {
+try {
+    const server = new Hapi.Server();
 
-    server.start(() => {
-        // go nuts
-    });
-});
+    await server.register(plugins);
+    await server.start();
+}
+catch (err) {
+    throw err;
+}
 ```
 
-[coveralls-img]: https://coveralls.io/repos/ruiquelhas/recourier/badge.svg
+[coveralls-img]: https://img.shields.io/coveralls/ruiquelhas/recourier.svg?style=flat-square
 [coveralls-url]: https://coveralls.io/github/ruiquelhas/recourier
-[david-img]: https://david-dm.org/ruiquelhas/recourier.svg
+[david-img]: https://img.shields.io/david/ruiquelhas/recourier.svg?style=flat-square
 [david-url]: https://david-dm.org/ruiquelhas/recourier
-[fury-img]: https://badge.fury.io/js/recourier.svg
-[fury-url]: https://badge.fury.io/js/recourier
-[travis-img]: https://travis-ci.org/ruiquelhas/recourier.svg
+[david-dev-img]: https://img.shields.io/david/dev/ruiquelhas/recourier.svg?style=flat-square
+[david-dev-url]: https://david-dm.org/ruiquelhas/recourier?type=dev
+[version-img]: https://img.shields.io/npm/v/recourier.svg?style=flat-square
+[version-url]: https://www.npmjs.com/package/recourier
+[travis-img]: https://img.shields.io/travis/ruiquelhas/recourier.svg?style=flat-square
 [travis-url]: https://travis-ci.org/ruiquelhas/recourier
